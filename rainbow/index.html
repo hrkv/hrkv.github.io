@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+        :root {
+            --animation-scale: 3;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes jumper {
+            to {
+                transform: scaleY(var(--animation-scale));
+            }
+        }
+
+        .rainbow {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .color {
+            --animation-speed: 3s;
+
+            width: 10px;
+            height: 200px;
+            margin: 0 4px;
+
+            animation: jumper var(--animation-speed) alternate infinite;
+        }
+
+        .red { background: red; }
+        .orange { background: orange; }
+        .yellow { background: yellow; }
+        .green { background: green; }
+        .light-blue { background: lightblue; }
+        .blue { background: blue; }
+        .purple { background: purple; }
+
+    </style>
+</head>
+<body>
+    <div class="rainbow">
+        <div class="color red"></div>
+        <div class="color orange"></div>
+        <div class="color yellow"></div>
+        <div class="color green"></div>
+        <div class="color light-blue"></div>
+        <div class="color blue"></div>
+        <div class="color purple"></div>
+    </div>
+
+    <script>
+        const rainbow = document.querySelector('.rainbow');
+        const colors = rainbow.querySelectorAll('.color');
+        let counter = 0;
+        
+        setInterval(() => {
+            const element = colors[counter++ % colors.length];
+            const speed = .2 + Math.random() * 5;
+            const scale = 1 + Math.random() * 3;
+
+            element.style.setProperty('--animation-speed', speed +'s');
+            element.style.setProperty('--animation-scale', scale);
+        }, 3000);
+    </script>
+</body>
+</html>

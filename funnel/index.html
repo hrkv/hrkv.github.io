@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Funnel</title>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+</head>
+<body>
+    <div class="app container">
+        <div class="row my-4">
+            <div class="model col-4">
+                <form class="my-4">
+                    <div class="form-group">
+                        <label for="input">
+                            Входные данные
+                        </label>
+                        <input id="input" name="inputValue" type="number" class="form-control" value="1000" />
+                    </div>
+                </form>
+                <div class="form-group">
+                    <button data-action="add-level" class="btn btn-outline-primary">Добавить уровень</button>
+                </div>
+            </div>
+            <div class="view col-8 text-center">
+
+            </div>
+        </div>
+    </div>
+
+    <script src="./Funnel.js"></script>
+
+    <script>
+        const funnel = new Funnel({
+            height: 600,
+            width: 500,
+            input: 1000,
+            parent: document.querySelector('.view'),
+            levels: []
+        });
+
+        const form = $('form');
+
+        form.submit((e) => e.preventDefault());
+
+        form.change(function (e) {
+            const values = $(this).serializeArray();
+            const inputValue = values.splice(0, 1);
+
+            funnel.setLevels(values.map(({ value }) => Number(value)));
+            funnel.setInput(Number(inputValue[0].value));
+            funnel.render();
+        });
+
+        form.click((e) => {
+            const elem = $(e.target);
+            const { levelNumber, action } = elem.data();
+
+            if (action === 'delete') {
+                elem.closest('.input-group').remove();
+                funnel.removeLevel(levelNumber - 1, true);
+            }
+        });
+
+        function buildLevelForm() {
+            const id = funnel.getLevelsCount() + 1;
+            const initialValue = 75;
+
+            $(`
+                <div class="form-group input-group">
+                    <input
+                        class="form-control"
+                        name="levelPercentage"
+                        type="number"
+                        step="0.1"
+                        data-level-number="${id}"
+                        value="${initialValue}"
+                    />
+                    <div class="input-group-append">
+                        <div
+                            class="btn btn-danger"
+                            data-action="delete"
+                            data-level-number="${id}"
+                        >
+                            Удалить
+                        </div>
+                    </div>
+                </div>
+            `).appendTo(form);
+
+            funnel.addLevel(initialValue);
+            funnel.render();
+        }
+
+        const addLevelButton = document.querySelector(`[data-action="add-level"]`);
+        addLevelButton.addEventListener('click', buildLevelForm);
+    </script>
+</body>
+</html>
