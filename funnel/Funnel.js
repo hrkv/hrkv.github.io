@@ -2,9 +2,12 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 class Funnel {
     constructor(options) {
+        // nodes
         this._root = null;
         this._levels = null;
+        this._labels = null;
 
+        // props
         this.input = null;
         this.width = null;
         this.height = null;
@@ -16,10 +19,6 @@ class Funnel {
 
         this.init(options);
         this.render();
-    }
-
-    getLevelsCount() {
-        return this.levels.length;
     }
 
     init(options) {
@@ -51,7 +50,11 @@ class Funnel {
         }
     }
 
-    calc() {
+    setInput(value) {
+        this.input = value;
+    }
+
+    updateLevels() {
         const { style,
                 width,
                 height,
@@ -67,36 +70,22 @@ class Funnel {
             return result;
         }, []);
 
-        const paths = levelsWidths.map((levelWidth, index) => {
+        levelsWidths.forEach((levelWidth, index) => {
             const previousWidth = index ? levelsWidths[index - 1] : width;
             const diffWidth = previousWidth - levelWidth;
 
             const top = labelHeight + index * levelHeight + lineWidth / 2;
             const topLeft = (width - previousWidth) / 2;
 
-            return `M${topLeft} ${top} h ${previousWidth} l ${-diffWidth/2} ${levelHeight} h ${-levelWidth} Z`;
+            const path = `M${topLeft} ${top} h ${previousWidth} l ${-diffWidth/2} ${levelHeight} h ${-levelWidth} Z`;
+            const { node } = levels[index];
+
+            node.setAttribute('d', path);
+            this._levels.appendChild(node);
         });
-
-        levels.forEach(({ node }, index) => node.setAttribute('d', paths[index]))
-    }
-
-    setInput(value) {
-        this.input = value;
-    }
-
-    updateLevels() {
-        while (this._levels.firstChild) {
-            this._levels.removeChild(this._levels.firstChild);
-        }
-
-        this.levels.forEach(({ node }) => this._levels.appendChild(node));
     }
 
     updateValues() {
-        while (this._labels.firstChild) {
-            this._labels.removeChild(this._labels.firstChild);
-        }
-
         if (!this.levels.length) {
             return;
         }
@@ -122,38 +111,38 @@ class Funnel {
         });
     }
 
+    clearCanvas() {
+        const { _levels, _labels } = this;
+
+        while (_levels.firstChild) {
+            _levels.removeChild(_levels.firstChild);
+        }
+
+        while (_labels.firstChild) {
+            _labels.removeChild(_labels.firstChild);
+        }
+    }
+
     render() {
-        this.calc();
+        this.clearCanvas();
         this.updateLevels();
         this.updateValues();
     }
 
-    setLevels(levels, update) {
+    setLevels(levels) {
         this.levels = [];
 
         levels.forEach((value) => {
             this.addLevel(value);
         });
-
-        if (update) {
-            this.render();
-        }
     }
 
-    addLevel(value, update = false) {
+    addLevel(value) {
         this.levels.push(this.createLevel(value));
-
-        if (update) {
-            this.render();
-        }
     }
 
-    removeLevel(index, update) {
+    removeLevel(index) {
         this.levels.splice(index, 1);
-
-        if (update) {
-            this.render();
-        }
     }
 
     createLevel(value) {
