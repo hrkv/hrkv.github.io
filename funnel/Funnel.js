@@ -12,6 +12,11 @@ class Funnel {
         this.width = null;
         this.height = null;
         this.levels = [];
+        this.options = null;
+
+        this.events = {
+            onChange: null
+        };
 
         this.style = {
             lineWidth: 4
@@ -26,7 +31,9 @@ class Funnel {
                 width,
                 height,
                 levels,
-                parent } = options;
+                parent,
+
+                onChange } = options;
 
         this._root = document.createElementNS(SVG_NS, 'svg');
 
@@ -42,6 +49,8 @@ class Funnel {
 
         this._labels = document.createElementNS(SVG_NS, 'g');
         this._root.appendChild(this._labels);
+
+        this.events.onChange = onChange;
 
         this.setLevels(levels);
 
@@ -123,10 +132,26 @@ class Funnel {
         }
     }
 
+    updateOptions() {
+        const currentOptions = this.getOptions();
+
+        if (currentOptions === this.options) {
+            return;
+        }
+
+        this.options = currentOptions;
+
+        if (this.events.onChange) {
+            this.events.onChange();
+        }
+    }
+
     render() {
         this.clearCanvas();
         this.updateLevels();
         this.updateValues();
+
+        this.updateOptions();
     }
 
     setLevels(levels) {
@@ -154,5 +179,12 @@ class Funnel {
         node.setAttribute('stroke-width', `${this.style.lineWidth}px`);
 
         return { node, value };
+    }
+
+    getOptions() {
+        return JSON.stringify({
+            levels: this.levels.map(({ value }) => value),
+            input: this.input
+        });
     }
 }
