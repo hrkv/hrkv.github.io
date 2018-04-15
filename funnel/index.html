@@ -13,6 +13,13 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
+    <style>
+        .color-picker {
+            height: 100%;
+            width: 100%;
+            border: none;
+        }
+    </style>
 </head>
 <body>
     <div class="app container">
@@ -57,18 +64,31 @@
                 return {};
             }
 
+            query = query[0] === '?' ? query.substr(1) : query;
+            query = decodeURIComponent(query);
+
             const parts = query
                 .split('&')
                 .map((pair) => pair.split('='));
-            const levels = parts
+            let levels = parts
                 .filter((pair) => pair[0] === 'level')
-                .map((pair) => parseInt(pair[1], 10))
-                .filter((level) => !isNaN(level));
+                .map((pair) => ({ value: parseInt(pair[1], 10) }))
+                .filter(({ value }) => !isNaN(value));
+            const colors = parts
+                .filter((pair) => pair[0] === 'color')
+                .map((pair) => ({ color: pair[1] }));
             const input = parts.find((pair) => pair[0] === 'in');
 
             const settings = {};
 
             if (levels.length) {
+                if (colors.length) {
+                    levels = levels.map((level, index) => ({
+                        ...level,
+                        ...colors[index]
+                    }));
+                }
+
                 settings.levels = levels;
             }
 
@@ -83,10 +103,10 @@
             return settings;
         }
 
-        function addLevelToView(value) {
+        function addLevelToView(value = 75, color = '#ffffff') {
             $(`
                 <div class="funnel-level form-group row">
-                    <div class="input-group col-6">
+                    <div class="input-group col-5">
                         <input
                             class="form-control"
                             name="level"
@@ -99,7 +119,16 @@
                         </div>
                     </div>
 
-                    <div class="col-6">
+                    <div class="col-2">
+                        <input
+                            name="color"
+                            class="color-picker"
+                            type="color"
+                            value="${color}"
+                        />
+                    </div>
+
+                    <div class="col-5">
                         <div
                             class="btn btn-block btn-outline-danger"
                             data-action="delete"
@@ -113,10 +142,10 @@
 
         const settings = {
             ...defaultSettings,
-            ...parseSettings(location.search.substr(1))
+            ...parseSettings(location.search)
         };
 
-        settings.levels.forEach((value) => addLevelToView(value));
+        settings.levels.forEach(({ value, color }) => addLevelToView(value, color));
         const funnel = new Funnel(settings);
 
         form.submit((e) => e.preventDefault());
@@ -125,7 +154,15 @@
             const values = $(this).serializeArray();
             const inputValue = values.splice(0, 1)[0].value;
 
-            const levels = values.map(({ value }) => Number(value));
+            const levels = values.reduce((res, { name, value }) => {
+                if (name === 'level') {
+                    res.push({ value });
+                } else {
+                    res[res.length - 1][name] = value;
+                }
+
+                return res;
+            }, []);
             const input = Number(inputValue);
 
             funnel.setLevels(levels);
@@ -152,7 +189,7 @@
             const initialValue = 75;
 
             addLevelToView(initialValue);
-            funnel.addLevel(initialValue);
+            funnel.addLevel({ value: initialValue });
             funnel.render();
         });
     </script>

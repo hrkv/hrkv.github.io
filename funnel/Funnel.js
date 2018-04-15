@@ -170,15 +170,19 @@ class Funnel {
         this.levels.splice(index, 1);
     }
 
-    createLevel(value) {
+    createLevel({ value, color = '#ffffff' }) {
         const node = document.createElementNS(SVG_NS, 'path');
 
         node.classList.add('Level');
-        node.setAttribute('fill', 'transparent');
+        node.setAttribute('fill', color);
         node.setAttribute('stroke', '#999');
         node.setAttribute('stroke-width', `${this.style.lineWidth}px`);
 
-        return { node, value };
+        return {
+            node,
+            value,
+            color
+        };
     }
 
     getOptions() {
